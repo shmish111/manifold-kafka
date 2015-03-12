@@ -1,6 +1,6 @@
 (ns manifold-kafka.test.producer
   (:require [manifold.stream :as s]
-            [expectations :refer :all]
+            [midje.sweet :refer :all]
             [clj-kafka.core :refer [with-resource to-clojure]]
             [clj-kafka.consumer.zk :as zk]
             [manifold-kafka.producer :refer [producer]]
@@ -30,18 +30,37 @@
   (.getBytes "Hello, world"))
 
 (defn send-and-receive
-  [message]
+  [msg]
   (with-test-broker test-broker-config
                     (with-resource [c (zk/consumer consumer-config)]
                                    zk/shutdown
                                    (with-resource [p (producer producer-config "test")]
                                                   s/close!
                                                   (let [s (zk/stream c "test" 1)]
-                                                    (s/put! p message)
+                                                    (s/put! p msg)
                                                     (first (zks/kafka-seq s)))))))
 
-(given (send-and-receive (test-message))
-       (expect :topic "test"
-               :offset 0
-               :partition 0
-               (string-value :value) "Hello, world"))
+(fact "should produce simple message"
+      (let [result (send-and-receive (test-message))]
+        result => (contains {:topic     "test"
+                             :offset    0
+                             :partition 0})
+        (-> result :value (String. "UTF-8")) => "Hello, world"))
+
+(defn send-and-receive-json
+  [msg]
+  (with-test-broker test-broker-config
+                    (with-resource [c (zk/consumer consumer-config)]
+                                   zk/shutdown
+                                   (with-resource [p (producer producer-config "test" :serializer :json)]
+                                                  s/close!
+                                                  (let [s (zk/stream c "test" 1)]
+                                                    (s/put! p msg)
+                                                    (first (zks/kafka-seq s)))))))
+
+(fact "should produce json message"
+      (let [result (send-and-receive-json {:yo "Hello, world"})]
+        result => (contains {:topic     "test"
+                             :offset    0
+                             :partition 0})
+        (-> result :value (String. "UTF-8")) => "{\"yo\":\"Hello, world\"}"))

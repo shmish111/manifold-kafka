@@ -1,9 +1,9 @@
 (ns manifold-kafka.test.consumer
   (:require [manifold-kafka.consumer :refer [input-stream]]
             [manifold.stream :as s]
-            [expectations :refer :all]
+            [midje.sweet :refer :all]
             [clj-kafka.core :refer [with-resource to-clojure]]
-            [clj-kafka.producer :refer [producer send-messages message]]
+            [clj-kafka.producer :as p :refer [producer send-messages]]
             [manifold-kafka.test.utils :refer [with-test-broker]]))
 
 (def producer-config {"metadata.broker.list" "localhost:9999"
@@ -19,14 +19,9 @@
                       "auto.offset.reset"  "smallest"
                       "auto.commit.enable" "false"})
 
-(defn string-value
-  [k]
-  (fn [m]
-    (String. (k m) "UTF-8")))
-
 (defn test-message
   []
-  (message "test" (.getBytes "Hello, world")))
+  (p/message "test" (.getBytes "{\"yo\": \"Hello, world\"}")))
 
 (defn send-and-receive
   [messages]
@@ -35,11 +30,26 @@
                                    s/close!
                                    (let [p (producer producer-config)]
                                      (send-messages p messages)
-                                     @(s/take! stream 1)))))
+                                     (deref (s/take! stream 1) 1000 nil)))))
 
-(given (send-and-receive [(test-message)])
-       (expect :topic "test"
-               :offset 0
-               :partition 0
-               (string-value :value) "Hello, world"))
+(fact "should consume simple message"
+      (let [result (send-and-receive [(test-message)])]
+        result => (contains {:topic     "test"
+                             :offset    0
+                             :partition 0})
+        (-> result :value (String. "UTF-8")) => "{\"yo\": \"Hello, world\"}"))
 
+(defn send-and-receive-json
+  [messages]
+  (with-test-broker test-broker-config
+                    (with-resource [stream (input-stream consumer-config "test" :deserializer :json)]
+                                   s/close!
+                                   (let [p (producer producer-config)]
+                                     (send-messages p messages)
+                                     (deref (s/take! stream 1) 1000 nil)))))
+
+(fact "should consume json message"
+      (send-and-receive-json [(test-message)]) => (contains {:topic     "test"
+                                                             :offset    0
+                                                             :partition 0
+                                                             :value     {:yo "Hello, world"}}))
