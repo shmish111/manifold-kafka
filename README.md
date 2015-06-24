@@ -8,6 +8,8 @@ The idea of manifold-kafka is to be able to use kafka as if it were a simple man
 
 ## Usage
 
+[![Clojars Project](http://clojars.org/manifold-kafka/latest-version.svg)](http://clojars.org/manifold-kafka)
+
 ### Producer
 
 ```clj
