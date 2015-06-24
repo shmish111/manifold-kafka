@@ -1,4 +1,4 @@
-(defproject manifold-kafka "0.0.1-SNAPSHOT"
+(defproject manifold-kafka "0.0.1"
   :min-lein-version "2.0.0"
   :url "https://github.com/shmish111/manifold-kafka"
   :license {:name "Eclipse Public License"
