@@ -4,12 +4,10 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [clj-kafka/clj-kafka "0.2.8-0.8.1.1"]
-                 [zookeeper-clj "0.9.3"]
-                 [manifold "0.1.0-beta3"]
-                 [cheshire "5.4.0"]]
-  :plugins [[lein-expectations "0.0.8"]]
+                 [clj-kafka/clj-kafka "0.3.1"]
+                 [manifold "0.1.0"]]
   :profiles {:dev {:dependencies [[commons-io/commons-io "2.4"]
                                   [midje "1.6.3"]
-                                  [org.slf4j/slf4j-simple "1.7.10"]]}}
-  :description "Manifold producer and consumer for clj-kafka")
+                                  [org.slf4j/slf4j-simple "1.7.12"]]}}
+  :description "Manifold producer and consumer for clj-kafka"
+            :main manifold-kafka.producer)

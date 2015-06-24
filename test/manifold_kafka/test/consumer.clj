@@ -2,6 +2,7 @@
   (:require [manifold-kafka.consumer :refer [input-stream]]
             [manifold.stream :as s]
             [midje.sweet :refer :all]
+            [clojure.test :refer :all]
             [clj-kafka.core :refer [with-resource to-clojure]]
             [clj-kafka.producer :as p :refer [producer send-messages]]
             [manifold-kafka.test.utils :refer [with-test-broker]]))
@@ -32,24 +33,10 @@
                                      (send-messages p messages)
                                      (deref (s/take! stream 1) 1000 nil)))))
 
-(fact "should consume simple message"
-      (let [result (send-and-receive [(test-message)])]
-        result => (contains {:topic     "test"
-                             :offset    0
-                             :partition 0})
-        (-> result :value (String. "UTF-8")) => "{\"yo\": \"Hello, world\"}"))
-
-(defn send-and-receive-json
-  [messages]
-  (with-test-broker test-broker-config
-                    (with-resource [stream (input-stream consumer-config "test" :deserializer :json)]
-                                   s/close!
-                                   (let [p (producer producer-config)]
-                                     (send-messages p messages)
-                                     (deref (s/take! stream 1) 1000 nil)))))
-
-(fact "should consume json message"
-      (send-and-receive-json [(test-message)]) => (contains {:topic     "test"
-                                                             :offset    0
-                                                             :partition 0
-                                                             :value     {:yo "Hello, world"}}))
+(deftest consumer-facts
+         (fact "should consume simple message"
+               (let [result (send-and-receive [(test-message)])]
+                 result => (contains {:topic     "test"
+                                      :offset    0
+                                      :partition 0})
+                 (-> result :value (String. "UTF-8")) => "{\"yo\": \"Hello, world\"}")))

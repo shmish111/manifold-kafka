@@ -4,6 +4,8 @@
 
 Current build status: [![Build Status](https://travis-ci.org/shmish111/manifold-kafka.png)](https://travis-ci.org/shmish111/manifold-kafka)
 
+The idea of manifold-kafka is to be able to use kafka as if it were a simple manifold stream.
+
 ## Usage
 
 ### Producer
@@ -13,8 +15,8 @@ Current build status: [![Build Status](https://travis-ci.org/shmish111/manifold-
          '[manifold.stream :refer [put! close!]])
 
 (def config {"metadata.broker.list" "localhost:9999"
-                  "serializer.class" "kafka.serializer.DefaultEncoder"
-                  "partitioner.class" "kafka.producer.DefaultPartitioner"})
+             "serializer.class" "kafka.serializer.DefaultEncoder"
+             "partitioner.class" "kafka.producer.DefaultPartitioner"})
 
 (def p (producer config "test"))
 
